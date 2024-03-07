@@ -4,83 +4,83 @@ import telegram
 from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters,
 CallbackContext)
 from ChatGPT_HKBU import HKBU_ChatGPT
-# The messageHandler is used for all message updates
+# The messageHandler is used for all message updaters
 import configparser
 import logging
 import os
 import redis
 
-
 global redis1
-# 设置http代理
-os.environ['http_proxy'] = 'http://127.0.0.1:7890'
+# # 设置http代理
+# os.environ['http_proxy'] = 'http://127.0.0.1:7890'
  
-# 设置https代理（可选）
-os.environ['https_proxy'] = 'http://127.0.0.1:7890'
+# # 设置https代理（可选）
+# os.environ['https_proxy'] = 'http://127.0.0.1:7890'
 
-r = redis.Redis(
-  host='redis-13632.c323.us-east-1-2.ec2.cloud.redislabs.com',
-  port=13632,
-  password='zu3haYJIeB6TyqNVkvDAbVyARZp4eFKv')
+# r = redis.Redis(
+#   host='redis-13632.c323.us-east-1-2.ec2.cloud.redislabs.com',
+#   port=13632,
+#   password='zu3haYJIeB6TyqNVkvDAbVyARZp4eFKv')
  
 
 # 然后就可以正常运行其他需要网络连接的操作了
 def main():
-    # Load your token and create an Updater for your Bot
+    # Load your token and create an updater for your Bot
     config = configparser.ConfigParser()
     config.read('config.ini')
-    updater = Updater(token=(config['TELEGRAM']['ACCESS_TOKEN']), use_context=True)
+    updater = Updater(token=(os.environ['TELEGRAM_ACCESS_TOKEN']), use_context=True)
     dispatcher = updater.dispatcher
     global redis1
-    redis1 = redis.Redis(host=(config['REDIS']['HOST']),
-        password=(config['REDIS']['PASSWORD']),
-        port=(config['REDIS']['REDISPORT']))
+    redis1 = redis.Redis(host=(os.environ['REDIS_HOST']),
+        password=(os.environ['REDIS_PASSWORD']),
+        port=(os.environ['REDIS_PORT']))
     
     global chatgpt
     chatgpt = HKBU_ChatGPT(config)
 
-    # You can set this logging module, so you will know when and why things do not work a
     logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
-    # register a dispatcher to handle message: here we register an echo dispatcher
-    # echo_handler = MessageHandler(Filters.text & (~Filters.command), echo)
     chatgpt_handler = MessageHandler(Filters.text & (~Filters.command), equiped_chatgpt)
-    # dispatcher.add_handler(echo_handler)
     dispatcher.add_handler(chatgpt_handler)
     # on different commands - answer in Telegram
     dispatcher.add_handler(CommandHandler("add", add))
     dispatcher.add_handler(CommandHandler("help", help_command))
+    dispatcher.add_handler(CommandHandler("hello", hello))
     # To start the bot:
     updater.start_polling()
     updater.idle()
-# def echo(update, context):
-#     reply_message = update.message.text.upper()
-#     logging.info("Update: " + str(update))
-#     logging.info("context: " + str(context))
-#     context.bot.send_message(chat_id=update.effective_chat.id, text= reply_message)
 
-# Define a few command handlers. These usually take the two arguments update and
+# Define a few command handlers. These usually take the two arguments updater and
 # context. Error handlers also receive the raised TelegramError object in error.
-def help_command(update: Updater, context: CallbackContext) -> None:
+def help_command(updater: Updater, context: CallbackContext) -> None:
     """Send a message when the command /help is issued."""
-    update.message.reply_text('Helping you helping you.')
-def add(update: Updater, context: CallbackContext) -> None:
+    updater.message.reply_text('Helping you helping you.')
+def add(updater: Updater, context: CallbackContext) -> None:
     """Send a message when the command /add is issued."""
     try:
         global redis1
         logging.info(context.args[0])
         msg = context.args[0] # /add keyword <-- this should store the keyword
         redis1.incr(msg)
-        update.message.reply_text('You have said ' + msg + ' for ' +
+        updater.message.reply_text('You have said ' + msg + ' for ' +
             redis1.get(msg).decode('UTF-8') + ' times.')
     except (IndexError, ValueError):
-        update.message.reply_text('Usage: /add <keyword>')
+        updater.message.reply_text('Usage: /add <keyword>')
         
-def equiped_chatgpt(update, context):
+def equiped_chatgpt(updater, context):
     global chatgpt
-    reply_message = chatgpt.submit(update.message.text)
-    logging.info("Update: " + str(update))
+    reply_message = chatgpt.submit(updater.message.text)
+    logging.info("updater: " + str(updater))
     logging.info("context: " + str(context))
-    context.bot.send_message(chat_id=update.effective_chat.id, text=reply_message)
+    logging.info("msg:" + str(reply_message))
+    context.bot.send_message(chat_id=updater.effective_chat.id, text=reply_message)
 
+def hello(updater: Updater, context: CallbackContext) -> None:
+    s = ""
+    i = 0
+    for i in range(len(context.args)):
+        if i != 0:
+            s += " "
+        s += context.args[i]
+    updater.message.reply_text('Good day, ' + s + '.')
 if __name__ == '__main__':
     main()
