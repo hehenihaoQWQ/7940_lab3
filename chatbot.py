@@ -68,11 +68,15 @@ def add(updater: Updater, context: CallbackContext) -> None:
         
 def equiped_chatgpt(updater, context):
     global chatgpt
+    wating_message = "Drenal Bot is working hard to solve your problem!"
+    # 由于GPT回消息太慢，调用功能时先添加一个回复语，随后修改消息
+    current_message = context.bot.send_message(chat_id = updater.effective_chat.id, text = wating_message)
     reply_message = chatgpt.submit(updater.message.text)
     logging.info("updater: " + str(updater))
     logging.info("context: " + str(context))
-    logging.info("msg:" + str(reply_message))
-    context.bot.send_message(chat_id=updater.effective_chat.id, text=reply_message)
+    logging.info("msg: " + str(reply_message))
+    context.bot.edit_message_text(reply_message, updater.effective_chat.id, current_message.message_id)
+    # context.bot.send_message(chat_id=updater.effective_chat.id, text=reply_message)
 
 def hello(updater: Updater, context: CallbackContext) -> None:
     s = ""
