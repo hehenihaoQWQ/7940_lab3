@@ -1,0 +1,13 @@
+version: '3'
+services:
+  chatbot:
+    image: 7940_lab3-chatbot
+    environment:
+      -  CHATGPT_ACCESS_TOKEN=96c7dfd2-5e63-4962-b0f5-014b32d842f9 
+      -  CHATGPT_APIVERSION=2023-12-01-preview 
+      -  CHATGPT_BASICURL=https://chatgpt.hkbu.edu.hk/general/rest 
+      -  CHATGPT_MODELNAME=gpt-4-turbo 
+      -  REDIS_HOST=redis-13632.c323.us-east-1-2.ec2.cloud.redislabs.com 
+      -  REDIS_PASSWORD=zu3haYJIeB6TyqNVkvDAbVyARZp4eFKv 
+      -  REDIS_PORT=13632 
+      -  TELEGRAM_ACCESS_TOKEN=6643221960:AAEaYncLwQUw-rmu8_xeFigwDu1Tob8twdg
